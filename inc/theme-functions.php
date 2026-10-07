@@ -59,8 +59,180 @@ if ( ! function_exists( 'webpress_get_layout' ) ) {
 			$layout = webpress_get_option( 'blog_layout_setting' );
 		}
 
-		return $layout;
+		/**
+		 * Filters the sidebar layout for the current view.
+		 *
+		 * Applied after any per-post override, so this is the final say.
+		 *
+		 * @since 1.0.0
+		 *
+		 * @param string $layout The sidebar layout slug.
+		 * @return string The sidebar layout to use.
+		 */
+		return apply_filters( 'webpress_sidebar_layout', $layout );
 	}
+}
+
+/**
+ * Get the allowed container layouts.
+ *
+ * @since 1.0.0
+ *
+ * @return array Container layout slugs mapped to their labels.
+ */
+function webpress_get_container_layouts() {
+	return array(
+		'normal' => __( 'Normal', 'webpress' ),
+		'narrow' => __( 'Narrow', 'webpress' ),
+		'full-width' => __( 'Full Width', 'webpress' ),
+	);
+}
+
+/**
+ * Get the container layout for the current page.
+ *
+ * Pages, single posts and blog listings each have their own setting, and a
+ * post or page can override it from the Layout meta box.
+ *
+ * @since 1.0.0
+ *
+ * @return string normal, narrow or full-width.
+ */
+function webpress_get_container_layout() {
+	$layout = webpress_get_option( 'page_container_layout' );
+
+	if ( is_single() ) {
+		$layout = webpress_get_option( 'single_container_layout' );
+	}
+
+	if ( is_singular() ) {
+		$layout_meta = get_post_meta( get_the_ID(), '_webpress-container-layout', true );
+
+		if ( $layout_meta ) {
+			$layout = $layout_meta;
+		}
+
+		// The full width page builder container stretches the container too.
+		if ( 'true' === get_post_meta( get_the_ID(), '_webpress-full-width-content', true ) ) {
+			$layout = 'full-width';
+		}
+	}
+
+	if ( is_home() || is_archive() || is_search() ) {
+		$layout = webpress_get_option( 'blog_container_layout' );
+	}
+
+	/**
+	 * Filters the container layout for the current view.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param string $layout The container layout: normal, narrow or full-width.
+	 * @return string The container layout to use.
+	 */
+	$layout = apply_filters( 'webpress_container_layout', $layout );
+
+	if ( ! array_key_exists( $layout, webpress_get_container_layouts() ) ) {
+		$layout = 'normal';
+	}
+
+	return $layout;
+}
+
+/**
+ * Get the percentage of the container taken up by the content area.
+ *
+ * @since 1.0.0
+ *
+ * @param string $sidebar_layout The sidebar layout slug.
+ * @return int The content area width as a percentage.
+ */
+function webpress_get_content_area_width( $sidebar_layout ) {
+	$sidebar_width = 30;
+
+	switch ( $sidebar_layout ) {
+		case 'right-sidebar':
+		case 'left-sidebar':
+			return 100 - $sidebar_width;
+
+		case 'both-sidebars':
+		case 'both-right':
+		case 'both-left':
+			return 100 - ( $sidebar_width * 2 );
+	}
+
+	return 100;
+}
+
+/**
+ * Get the maximum width of the page container for the narrow layout.
+ *
+ * The narrow width applies to the content column, so when sidebars are
+ * showing the container grows to fit them beside it. It never grows past
+ * the regular container width.
+ *
+ * @since 1.0.0
+ *
+ * @param string $sidebar_layout The sidebar layout slug.
+ * @return int The container width in pixels.
+ */
+function webpress_get_narrow_container_width( $sidebar_layout ) {
+	$container_width = absint( webpress_get_option( 'container_width' ) );
+	$narrow_width = absint( webpress_get_option( 'narrow_container_width' ) );
+	$content_area_width = webpress_get_content_area_width( $sidebar_layout );
+
+	$width = (int) round( $narrow_width * 100 / $content_area_width );
+
+	return min( $width, $container_width );
+}
+
+/**
+ * Get the layout of the posts in blog and archive listings.
+ *
+ * @since 1.0.0
+ *
+ * @return string classic, list or grid.
+ */
+function webpress_get_blog_post_layout() {
+	$layout = 'classic';
+
+	$is_listing = is_home() || is_archive() || is_search();
+
+	// WooCommerce and bbPress archives print their own markup.
+	$is_plugin_archive = ( function_exists( 'is_woocommerce' ) && is_woocommerce() )
+		|| ( function_exists( 'is_bbpress' ) && is_bbpress() );
+
+	if ( $is_listing && ! $is_plugin_archive && webpress_has_default_loop() ) {
+		$layout = webpress_get_option( 'blog_post_layout' );
+	}
+
+	/**
+	 * Filters the layout of the posts in blog and archive listings.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param string $layout The post layout: classic, list or grid.
+	 * @return string The post layout to use.
+	 */
+	$layout = apply_filters( 'webpress_blog_post_layout', $layout );
+
+	if ( ! in_array( $layout, array( 'classic', 'list', 'grid' ), true ) ) {
+		$layout = 'classic';
+	}
+
+	return $layout;
+}
+
+/**
+ * Whether listing posts wrap their entry header, content and footer in a
+ * .entry-body element, so the featured image can sit beside or above it.
+ *
+ * @since 1.0.0
+ *
+ * @return bool Whether to output the wrapper.
+ */
+function webpress_has_entry_body_wrapper() {
+	return ! is_singular() && 'classic' !== webpress_get_blog_post_layout();
 }
 
 if ( ! function_exists( 'webpress_get_footer_widgets' ) ) {

@@ -81,6 +81,7 @@ function webpress_do_layout_meta_box( $post ) {
 	$stored_meta['_webpress-sidebar-layout-meta'][0] = ( isset( $stored_meta['_webpress-sidebar-layout-meta'][0] ) ) ? $stored_meta['_webpress-sidebar-layout-meta'][0] : '';
 	$stored_meta['_webpress-footer-widget-meta'][0] = ( isset( $stored_meta['_webpress-footer-widget-meta'][0] ) ) ? $stored_meta['_webpress-footer-widget-meta'][0] : '';
 	$stored_meta['_webpress-full-width-content'][0] = ( isset( $stored_meta['_webpress-full-width-content'][0] ) ) ? $stored_meta['_webpress-full-width-content'][0] : '';
+	$stored_meta['_webpress-container-layout'][0] = ( isset( $stored_meta['_webpress-container-layout'][0] ) ) ? $stored_meta['_webpress-container-layout'][0] : '';
 	$stored_meta['_webpress-disable-headline'][0] = ( isset( $stored_meta['_webpress-disable-headline'][0] ) ) ? $stored_meta['_webpress-disable-headline'][0] : '';
 
 	$tabs = array(
@@ -88,6 +89,11 @@ function webpress_do_layout_meta_box( $post ) {
 			'title' => esc_html__( 'Sidebars', 'webpress' ),
 			'target' => '#webpress-layout-sidebars',
 			'class' => 'current',
+		),
+		'container' => array(
+			'title' => esc_html__( 'Container', 'webpress' ),
+			'target' => '#webpress-layout-page-builder-container',
+			'class' => '',
 		),
 		'footer_widgets' => array(
 			'title' => esc_html__( 'Footer Widgets', 'webpress' ),
@@ -97,11 +103,6 @@ function webpress_do_layout_meta_box( $post ) {
 		'disable_elements' => array(
 			'title' => esc_html__( 'Disable Elements', 'webpress' ),
 			'target' => '#webpress-layout-disable-elements',
-			'class' => '',
-		),
-		'container' => array(
-			'title' => esc_html__( 'Content Container', 'webpress' ),
-			'target' => '#webpress-layout-page-builder-container',
 			'class' => '',
 		),
 	);
@@ -166,16 +167,29 @@ function webpress_do_layout_meta_box( $post ) {
 				</div>
 			</div>
 			<div id="webpress-layout-page-builder-container" style="display: none;">
-				<label for="_webpress-full-width-content" class="webpress-layout-metabox-section-title"><?php esc_html_e( 'Content Container', 'webpress' ); ?></label>
+				<label for="webpress-container-layout" class="webpress-layout-metabox-section-title"><?php esc_html_e( 'Container Layout', 'webpress' ); ?></label>
 
 				<p class="page-builder-content" style="color:#666;font-size:13px;margin-top:0;">
-					<?php esc_html_e( 'Choose your content container type.', 'webpress' ); ?>
+					<?php esc_html_e( 'Default uses the layout set in Appearance > Customize > Layout.', 'webpress' ); ?>
+				</p>
+
+				<select name="_webpress-container-layout" id="webpress-container-layout">
+					<option value="" <?php selected( $stored_meta['_webpress-container-layout'][0], '' ); ?>><?php esc_html_e( 'Default', 'webpress' ); ?></option>
+					<?php foreach ( webpress_get_container_layouts() as $layout_value => $layout_label ) : ?>
+						<option value="<?php echo esc_attr( $layout_value ); ?>" <?php selected( $stored_meta['_webpress-container-layout'][0], $layout_value ); ?>><?php echo esc_html( $layout_label ); ?></option>
+					<?php endforeach; ?>
+				</select>
+
+				<label for="_webpress-full-width-content" class="webpress-layout-metabox-section-title" style="margin-top:1.5em;"><?php esc_html_e( 'Page Builder Mode', 'webpress' ); ?></label>
+
+				<p class="page-builder-content" style="color:#666;font-size:13px;margin-top:0;">
+					<?php esc_html_e( 'Removes the content padding so a page builder can control the spacing.', 'webpress' ); ?>
 				</p>
 
 				<select name="_webpress-full-width-content" id="_webpress-full-width-content">
-					<option value="" <?php selected( $stored_meta['_webpress-full-width-content'][0], '' ); ?>><?php esc_html_e( 'Default', 'webpress' ); ?></option>
-					<option value="true" <?php selected( $stored_meta['_webpress-full-width-content'][0], 'true' ); ?>><?php esc_html_e( 'Full Width', 'webpress' ); ?></option>
-					<option value="contained" <?php selected( $stored_meta['_webpress-full-width-content'][0], 'contained' ); ?>><?php esc_html_e( 'Contained', 'webpress' ); ?></option>
+					<option value="" <?php selected( $stored_meta['_webpress-full-width-content'][0], '' ); ?>><?php esc_html_e( 'Off', 'webpress' ); ?></option>
+					<option value="true" <?php selected( $stored_meta['_webpress-full-width-content'][0], 'true' ); ?>><?php esc_html_e( 'Full width, no padding', 'webpress' ); ?></option>
+					<option value="contained" <?php selected( $stored_meta['_webpress-full-width-content'][0], 'contained' ); ?>><?php esc_html_e( 'Contained, no padding', 'webpress' ); ?></option>
 				</select>
 			</div>
 			<div id="webpress-layout-disable-elements" style="display: none;">
@@ -268,6 +282,17 @@ function webpress_save_layout_meta_data( $post_id ) {
 		update_post_meta( $post_id, $page_builder_container_key, $page_builder_container_value );
 	} else {
 		delete_post_meta( $post_id, $page_builder_container_key );
+	}
+
+	$container_layout_key   = '_webpress-container-layout';
+	$container_layout_value = isset( $_POST[ $container_layout_key ] )
+		? sanitize_key( wp_unslash( $_POST[ $container_layout_key ] ) )
+		: '';
+
+	if ( array_key_exists( $container_layout_value, webpress_get_container_layouts() ) ) {
+		update_post_meta( $post_id, $container_layout_key, $container_layout_value );
+	} else {
+		delete_post_meta( $post_id, $container_layout_key );
 	}
 
 	// We only need this if the Disable Elements module doesn't exist.

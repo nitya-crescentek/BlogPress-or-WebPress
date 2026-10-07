@@ -17,6 +17,7 @@ require_once trailingslashit( dirname( __FILE__ ) ) . 'controls/class-react-cont
 require_once trailingslashit( dirname( __FILE__ ) ) . 'controls/class-color-control.php';
 require_once trailingslashit( dirname( __FILE__ ) ) . 'controls/class-range-control.php';
 require_once trailingslashit( dirname( __FILE__ ) ) . 'controls/class-wrapper-control.php';
+require_once trailingslashit( dirname( __FILE__ ) ) . 'controls/class-radio-image-control.php';
 
 // Helper functions.
 require_once trailingslashit( dirname( __FILE__ ) ) . 'helpers.php';

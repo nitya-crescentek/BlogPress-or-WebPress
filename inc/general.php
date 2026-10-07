@@ -37,6 +37,10 @@ if ( ! function_exists( 'webpress_scripts' ) ) {
 
 		wp_enqueue_style( 'webpress-style', $dir_uri . "/assets/css/main{$suffix}.css", array(), WEBPRESS_VERSION, 'all' );
 
+		if ( 'classic' !== webpress_get_blog_post_layout() ) {
+			wp_enqueue_style( 'webpress-archive-layouts', $dir_uri . "/assets/css/components/archive-layouts{$suffix}.css", array( 'webpress-style' ), WEBPRESS_VERSION, 'all' );
+		}
+
 		if ( is_rtl() ) {
 			wp_enqueue_style( 'webpress-rtl', $dir_uri . "/assets/css/main-rtl{$suffix}.css", array(), WEBPRESS_VERSION, 'all' );
 		}
@@ -175,19 +179,11 @@ if ( ! function_exists( 'webpress_smart_content_width' ) ) {
 	function webpress_smart_content_width() {
 		global $content_width;
 
-		$container_width = webpress_get_option( 'container_width' );
-		$right_sidebar_width = '25';
-		$left_sidebar_width = '25';
 		$layout = webpress_get_layout();
+		$content_width = webpress_get_option( 'container_width' ) * ( webpress_get_content_area_width( $layout ) / 100 );
 
-		if ( 'left-sidebar' === $layout ) {
-			$content_width = $container_width * ( ( 100 - $left_sidebar_width ) / 100 );
-		} elseif ( 'right-sidebar' === $layout ) {
-			$content_width = $container_width * ( ( 100 - $right_sidebar_width ) / 100 );
-		} elseif ( 'no-sidebar' === $layout ) {
-			$content_width = $container_width;
-		} else {
-			$content_width = $container_width * ( ( 100 - ( $left_sidebar_width + $right_sidebar_width ) ) / 100 );
+		if ( 'narrow' === webpress_get_container_layout() ) {
+			$content_width = min( absint( webpress_get_option( 'narrow_container_width' ) ), $content_width );
 		}
 	}
 }

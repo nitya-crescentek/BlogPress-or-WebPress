@@ -14,6 +14,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<?php
 		webpress_featured_page_header_inside_single();
 
+		webpress_post_image( 'above-title' );
+
+		$webpress_has_entry_body = webpress_has_entry_body_wrapper();
+
+		if ( $webpress_has_entry_body ) {
+			echo '<div class="entry-body">';
+		}
+
 		/**
 		 * Fires at the top of the article, before the entry header.
 		 *
@@ -135,6 +143,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 		 */
 		do_action( 'webpress_after_content', 'content' );
 
+		if ( $webpress_has_entry_body ) {
+			echo '</div>';
+		}
 		?>
 	</div>
 </article>

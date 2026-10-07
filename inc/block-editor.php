@@ -22,12 +22,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 function webpress_get_block_editor_sidebar_layout( $meta = true ) {
 	$layout = webpress_get_option( 'layout_setting' );
 
-	if ( function_exists( 'get_current_screen' ) ) {
-		$screen = get_current_screen();
-
-		if ( is_object( $screen ) && 'post' === $screen->post_type ) {
-			$layout = webpress_get_option( 'single_layout_setting' );
-		}
+	if ( webpress_is_block_editor_single_post() ) {
+		$layout = webpress_get_option( 'single_layout_setting' );
 	}
 
 	/**
@@ -57,29 +53,68 @@ function webpress_get_block_editor_sidebar_layout( $meta = true ) {
 
 
 /**
+ * Whether the post being edited uses the single post layout settings.
+ *
+ * On the front end every singular post type except pages counts as a single
+ * post, so the editor follows the same rule.
+ *
+ * @since 1.0.0
+ *
+ * @return bool Whether the single post settings apply.
+ */
+function webpress_is_block_editor_single_post() {
+	if ( ! function_exists( 'get_current_screen' ) ) {
+		return false;
+	}
+
+	$screen = get_current_screen();
+
+	return is_object( $screen ) && $screen->post_type && 'page' !== $screen->post_type;
+}
+
+/**
+ * Get the container layout for the post being edited.
+ *
+ * @since 1.0.0
+ *
+ * @param bool $meta Check for post meta.
+ * @return string normal, narrow or full-width.
+ */
+function webpress_get_block_editor_container_layout( $meta = true ) {
+	$layout = webpress_is_block_editor_single_post()
+		? webpress_get_option( 'single_container_layout' )
+		: webpress_get_option( 'page_container_layout' );
+
+	if ( $meta ) {
+		$layout_meta = get_post_meta( get_the_ID(), '_webpress-container-layout', true );
+
+		if ( $layout_meta ) {
+			$layout = $layout_meta;
+		}
+
+		if ( 'true' === get_post_meta( get_the_ID(), '_webpress-full-width-content', true ) ) {
+			$layout = 'full-width';
+		}
+	}
+
+	if ( ! array_key_exists( $layout, webpress_get_container_layouts() ) ) {
+		$layout = 'normal';
+	}
+
+	return $layout;
+}
+
+/**
  * Get the content width for this post.
  *
  * @since 1.0.0
  */
 function webpress_get_block_editor_content_width() {
-	$container_width = webpress_get_option( 'container_width' );
-
-	$content_width = $container_width;
-
-	$right_sidebar_width = '25';
-
-	$left_sidebar_width = '25';
-
 	$layout = webpress_get_block_editor_sidebar_layout();
+	$content_width = webpress_get_option( 'container_width' ) * ( webpress_get_content_area_width( $layout ) / 100 );
 
-	if ( 'left-sidebar' === $layout ) {
-		$content_width = $container_width * ( ( 100 - $left_sidebar_width ) / 100 );
-	} elseif ( 'right-sidebar' === $layout ) {
-		$content_width = $container_width * ( ( 100 - $right_sidebar_width ) / 100 );
-	} elseif ( 'no-sidebar' === $layout ) {
-		$content_width = $container_width;
-	} else {
-		$content_width = $container_width * ( ( 100 - ( $left_sidebar_width + $right_sidebar_width ) ) / 100 );
+	if ( 'narrow' === webpress_get_block_editor_container_layout() ) {
+		$content_width = min( absint( webpress_get_option( 'narrow_container_width' ) ), $content_width );
 	}
 
 	return $content_width;
@@ -162,24 +197,39 @@ function webpress_enqueue_backend_block_editor_assets() {
 		$text_color = $color_settings['content_text_color'];
 	}
 
-	$sidebar_layout = get_post_meta( get_the_ID(), '_webpress_sidebar_layout', true );
+	$sidebar_layout = get_post_meta( get_the_ID(), '_webpress-sidebar-layout-meta', true );
+	$container_layout = get_post_meta( get_the_ID(), '_webpress-container-layout', true );
 	$content_area_type = get_post_meta( get_the_ID(), '_webpress-full-width-content', true );
+	$sidebar_width = (string) ( 100 - webpress_get_content_area_width( 'right-sidebar' ) );
 
 	wp_localize_script(
 		'webpress-block-editor',
 		'webpressBlockEditor',
 		array(
-			'sidebarLayout' => $sidebar_layout ? $sidebar_layout : webpress_get_block_editor_sidebar_layout( false ),
+			'sidebarLayout' => $sidebar_layout ? $sidebar_layout : '',
+			'defaultSidebarLayout' => webpress_get_block_editor_sidebar_layout( false ),
+			'containerLayout' => $container_layout ? $container_layout : '',
+			'defaultContainerLayout' => webpress_get_block_editor_container_layout( false ),
 			'containerWidth' => webpress_get_option( 'container_width' ),
+			'narrowContainerWidth' => webpress_get_option( 'narrow_container_width' ),
 			'contentPaddingRight' => absint( $spacing_settings['content_right'] ) . 'px',
 			'contentPaddingLeft' => absint( $spacing_settings['content_left'] ) . 'px',
-			'rightSidebarWidth' => '25',
-			'leftSidebarWidth' => '25',
+			'rightSidebarWidth' => $sidebar_width,
+			'leftSidebarWidth' => $sidebar_width,
 			'text_color' => $text_color,
 			'show_editor_styles' => true,
 			'contentAreaType' => $content_area_type ? $content_area_type : '',
 			'customContentWidth' => '',
 		)
+	);
+
+	// Replaces the content width plugin in the compiled bundle above.
+	wp_enqueue_script(
+		'webpress-block-editor-layout',
+		trailingslashit( get_template_directory_uri() ) . 'assets/js/block-editor-layout.js',
+		array( 'webpress-block-editor', 'wp-data', 'wp-dom-ready', 'wp-plugins' ),
+		WEBPRESS_VERSION,
+		true
 	);
 }
 
@@ -238,13 +288,17 @@ function webpress_do_inline_block_editor_css( $for = 'block-content' ) {
 		absint( $spacing_settings['content_right'] ) . 'px'
 	);
 
+	$content_area_type = get_post_meta( get_the_ID(), '_webpress-full-width-content', true );
+
+	if ( 'full-width' === webpress_get_block_editor_container_layout() ) {
+		$content_width_calc = '100%';
+	} elseif ( 'contained' === $content_area_type ) {
+		// Page builder mode has no content padding to take off.
+		$content_width_calc = absint( $content_width ) . 'px';
+	}
+
 	$css->set_selector( 'body' );
-	$css->add_property(
-		'--content-width',
-		'true' === get_post_meta( get_the_ID(), '_webpress-full-width-content', true )
-			? '100%'
-			: $content_width_calc
-	);
+	$css->add_property( '--content-width', $content_width_calc );
 
 	$css->set_selector( 'body .wp-block' );
 	$css->add_property( 'max-width', 'var(--content-width)' );

@@ -241,6 +241,7 @@ function webpress_do_control_inline_scripts() {
 	wp_localize_script( 'webpress-customizer-controls', 'webpress_color_defaults', webpress_get_color_defaults() );
 	wp_localize_script( 'webpress-customizer-controls', 'webpress_typography_defaults', webpress_get_default_fonts() );
 	wp_localize_script( 'webpress-customizer-controls', 'webpress_spacing_defaults', webpress_spacing_get_defaults() );
+	wp_localize_script( 'webpress-customizer-controls', 'webpressLayoutPreviewUrls', webpress_get_layout_preview_urls() );
 
 	/*
 	 * This is a separate handle from webpress-customizer-controls above. They are
@@ -363,6 +364,59 @@ function webpress_has_custom_logo_callback() {
 	}
 
 	return false;
+}
+
+/**
+ * Get a URL to preview for each of the layout sections in the Customizer.
+ *
+ * @since 1.0.0
+ *
+ * @return array URLs keyed by Customizer section ID. Empty when there is nothing to show.
+ */
+function webpress_get_layout_preview_urls() {
+	$latest_post = get_posts(
+		array(
+			'numberposts' => 1,
+			'post_type' => 'post',
+			'post_status' => 'publish',
+			'fields' => 'ids',
+		)
+	);
+
+	$page_id = 'page' === get_option( 'show_on_front' ) ? (int) get_option( 'page_on_front' ) : 0;
+
+	if ( ! $page_id ) {
+		$pages = get_posts(
+			array(
+				'numberposts' => 1,
+				'post_type' => 'page',
+				'post_status' => 'publish',
+				'orderby' => 'menu_order',
+				'order' => 'ASC',
+				'exclude' => array( (int) get_option( 'page_for_posts' ) ),
+				'fields' => 'ids',
+			)
+		);
+
+		$page_id = $pages ? (int) $pages[0] : 0;
+	}
+
+	return array(
+		'webpress_layout_pages' => $page_id ? get_permalink( $page_id ) : '',
+		'webpress_layout_single' => $latest_post ? get_permalink( $latest_post[0] ) : '',
+		'webpress_blog_section' => get_post_type_archive_link( 'post' ),
+	);
+}
+
+/**
+ * Check whether blog listings use the grid layout.
+ *
+ * Used as an active callback.
+ *
+ * @since 1.0.0
+ */
+function webpress_is_blog_grid_layout_callback() {
+	return 'grid' === webpress_get_option( 'blog_post_layout' );
 }
 
 /**

@@ -278,4 +278,41 @@
 		} );
 	} );
 
+	/**
+	 * Open a matching page in the preview when a layout section expands, so
+	 * changes made there are visible straight away.
+	 */
+	if ( window.webpressLayoutPreviewUrls ) {
+		Object.keys( window.webpressLayoutPreviewUrls ).forEach( function( sectionId ) {
+			var url = window.webpressLayoutPreviewUrls[ sectionId ];
+
+			if ( ! url ) {
+				return;
+			}
+
+			api.section( sectionId, function( section ) {
+				section.expanded.bind( function( isExpanded ) {
+					if ( isExpanded && api.previewer.previewUrl.get() !== url ) {
+						api.previewer.previewUrl.set( url );
+					}
+				} );
+			} );
+		} );
+	}
+
+	// Only show the grid column count while the grid layout is selected.
+	api( 'webpress_settings[blog_post_layout]', function( setting ) {
+		api.control( 'webpress_settings[blog_grid_columns]', function( control ) {
+			var setActiveState = function() {
+				control.active.set( 'grid' === setting.get() );
+			};
+
+			setActiveState();
+			setting.bind( setActiveState );
+			control.active.validate = function() {
+				return 'grid' === setting.get();
+			};
+		} );
+	} );
+
 }( wp.customize ) );

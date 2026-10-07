@@ -497,6 +497,41 @@ if ( ! function_exists( 'webpress_customize_register' ) ) {
 			)
 		);
 
+		$wp_customize->add_setting(
+			'webpress_settings[narrow_container_width]',
+			array(
+				'default' => $defaults['narrow_container_width'],
+				'type' => 'option',
+				'sanitize_callback' => 'webpress_sanitize_integer',
+			)
+		);
+
+		$wp_customize->add_control(
+			new WebPress_Range_Slider_Control(
+				$wp_customize,
+				'webpress_settings[narrow_container_width]',
+				array(
+					'type' => 'webpress-range-slider',
+					'label' => __( 'Narrow Content Width', 'webpress' ),
+					'description' => __( 'The width of the content column on anything set to the Narrow container layout.', 'webpress' ),
+					'section' => 'webpress_layout_container',
+					'settings' => array(
+						'desktop' => 'webpress_settings[narrow_container_width]',
+					),
+					'choices' => array(
+						'desktop' => array(
+							'min' => 500,
+							'max' => 1200,
+							'step' => 10,
+							'edit' => true,
+							'unit' => 'px',
+						),
+					),
+					'priority' => 1,
+				)
+			)
+		);
+
 		$wp_customize->add_section(
 			'webpress_top_bar',
 			array(
@@ -1038,12 +1073,50 @@ if ( ! function_exists( 'webpress_customize_register' ) ) {
 			)
 		);
 
+		$sidebar_layouts = array(
+			'right-sidebar' => __( 'Right Sidebar', 'webpress' ),
+			'left-sidebar' => __( 'Left Sidebar', 'webpress' ),
+			'no-sidebar' => __( 'No Sidebars', 'webpress' ),
+			'both-sidebars' => __( 'Both Sidebars', 'webpress' ),
+			'both-left' => __( 'Both Sidebars on Left', 'webpress' ),
+			'both-right' => __( 'Both Sidebars on Right', 'webpress' ),
+		);
+
+		$container_layouts = webpress_get_container_layouts();
+
+		$container_layout_description = __( 'Narrow keeps the content column at the narrow width set under Layout > Container. Full Width stretches the content across the screen.', 'webpress' );
+
 		$wp_customize->add_section(
-			'webpress_layout_sidebars',
+			'webpress_layout_pages',
 			array(
-				'title' => __( 'Sidebars', 'webpress' ),
+				'title' => __( 'Pages', 'webpress' ),
+				'description' => __( 'The layout for pages. Each page can override it from the Layout box in the editor.', 'webpress' ),
 				'priority' => 40,
 				'panel' => 'webpress_layout_panel',
+			)
+		);
+
+		$wp_customize->add_setting(
+			'webpress_settings[page_container_layout]',
+			array(
+				'default' => $defaults['page_container_layout'],
+				'type' => 'option',
+				'sanitize_callback' => 'webpress_sanitize_choices',
+			)
+		);
+
+		$wp_customize->add_control(
+			new WebPress_Customize_Radio_Image_Control(
+				$wp_customize,
+				'webpress_settings[page_container_layout]',
+				array(
+					'label' => __( 'Container Layout', 'webpress' ),
+					'description' => $container_layout_description,
+					'section' => 'webpress_layout_pages',
+					'choices' => $container_layouts,
+					'settings' => 'webpress_settings[page_container_layout]',
+					'priority' => 10,
+				)
 			)
 		);
 
@@ -1057,49 +1130,51 @@ if ( ! function_exists( 'webpress_customize_register' ) ) {
 		);
 
 		$wp_customize->add_control(
-			'webpress_settings[layout_setting]',
+			new WebPress_Customize_Radio_Image_Control(
+				$wp_customize,
+				'webpress_settings[layout_setting]',
+				array(
+					'label' => __( 'Sidebar Layout', 'webpress' ),
+					'description' => __( 'Also used for the 404 page.', 'webpress' ),
+					'section' => 'webpress_layout_pages',
+					'choices' => $sidebar_layouts,
+					'settings' => 'webpress_settings[layout_setting]',
+					'priority' => 20,
+				)
+			)
+		);
+
+		$wp_customize->add_section(
+			'webpress_layout_single',
 			array(
-				'type' => 'select',
-				'label' => __( 'Sidebar Layout', 'webpress' ),
-				'section' => 'webpress_layout_sidebars',
-				'choices' => array(
-					'left-sidebar' => __( 'Sidebar / Content', 'webpress' ),
-					'right-sidebar' => __( 'Content / Sidebar', 'webpress' ),
-					'no-sidebar' => __( 'Content (no sidebars)', 'webpress' ),
-					'both-sidebars' => __( 'Sidebar / Content / Sidebar', 'webpress' ),
-					'both-left' => __( 'Sidebar / Sidebar / Content', 'webpress' ),
-					'both-right' => __( 'Content / Sidebar / Sidebar', 'webpress' ),
-				),
-				'settings' => 'webpress_settings[layout_setting]',
-				'priority' => 30,
+				'title' => __( 'Single Posts', 'webpress' ),
+				'description' => __( 'The layout for single posts and other single post types. Each post can override it from the Layout box in the editor.', 'webpress' ),
+				'priority' => 42,
+				'panel' => 'webpress_layout_panel',
 			)
 		);
 
 		$wp_customize->add_setting(
-			'webpress_settings[blog_layout_setting]',
+			'webpress_settings[single_container_layout]',
 			array(
-				'default' => $defaults['blog_layout_setting'],
+				'default' => $defaults['single_container_layout'],
 				'type' => 'option',
 				'sanitize_callback' => 'webpress_sanitize_choices',
 			)
 		);
 
 		$wp_customize->add_control(
-			'webpress_settings[blog_layout_setting]',
-			array(
-				'type' => 'select',
-				'label' => __( 'Blog Sidebar Layout', 'webpress' ),
-				'section' => 'webpress_layout_sidebars',
-				'choices' => array(
-					'left-sidebar' => __( 'Sidebar / Content', 'webpress' ),
-					'right-sidebar' => __( 'Content / Sidebar', 'webpress' ),
-					'no-sidebar' => __( 'Content (no sidebars)', 'webpress' ),
-					'both-sidebars' => __( 'Sidebar / Content / Sidebar', 'webpress' ),
-					'both-left' => __( 'Sidebar / Sidebar / Content', 'webpress' ),
-					'both-right' => __( 'Content / Sidebar / Sidebar', 'webpress' ),
-				),
-				'settings' => 'webpress_settings[blog_layout_setting]',
-				'priority' => 35,
+			new WebPress_Customize_Radio_Image_Control(
+				$wp_customize,
+				'webpress_settings[single_container_layout]',
+				array(
+					'label' => __( 'Container Layout', 'webpress' ),
+					'description' => $container_layout_description,
+					'section' => 'webpress_layout_single',
+					'choices' => $container_layouts,
+					'settings' => 'webpress_settings[single_container_layout]',
+					'priority' => 10,
+				)
 			)
 		);
 
@@ -1113,21 +1188,16 @@ if ( ! function_exists( 'webpress_customize_register' ) ) {
 		);
 
 		$wp_customize->add_control(
-			'webpress_settings[single_layout_setting]',
-			array(
-				'type' => 'select',
-				'label' => __( 'Single Post Sidebar Layout', 'webpress' ),
-				'section' => 'webpress_layout_sidebars',
-				'choices' => array(
-					'left-sidebar' => __( 'Sidebar / Content', 'webpress' ),
-					'right-sidebar' => __( 'Content / Sidebar', 'webpress' ),
-					'no-sidebar' => __( 'Content (no sidebars)', 'webpress' ),
-					'both-sidebars' => __( 'Sidebar / Content / Sidebar', 'webpress' ),
-					'both-left' => __( 'Sidebar / Sidebar / Content', 'webpress' ),
-					'both-right' => __( 'Content / Sidebar / Sidebar', 'webpress' ),
-				),
-				'settings' => 'webpress_settings[single_layout_setting]',
-				'priority' => 36,
+			new WebPress_Customize_Radio_Image_Control(
+				$wp_customize,
+				'webpress_settings[single_layout_setting]',
+				array(
+					'label' => __( 'Sidebar Layout', 'webpress' ),
+					'section' => 'webpress_layout_single',
+					'choices' => $sidebar_layouts,
+					'settings' => 'webpress_settings[single_layout_setting]',
+					'priority' => 20,
+				)
 			)
 		);
 
@@ -1405,9 +1475,112 @@ if ( ! function_exists( 'webpress_customize_register' ) ) {
 		$wp_customize->add_section(
 			'webpress_blog_section',
 			array(
-				'title' => __( 'Blog', 'webpress' ),
-				'priority' => 55,
+				'title' => __( 'Blog & Archives', 'webpress' ),
+				'description' => __( 'The layout for the blog, category, tag, author, date and search results pages.', 'webpress' ),
+				'priority' => 44,
 				'panel' => 'webpress_layout_panel',
+			)
+		);
+
+		$wp_customize->add_setting(
+			'webpress_settings[blog_container_layout]',
+			array(
+				'default' => $defaults['blog_container_layout'],
+				'type' => 'option',
+				'sanitize_callback' => 'webpress_sanitize_choices',
+			)
+		);
+
+		$wp_customize->add_control(
+			new WebPress_Customize_Radio_Image_Control(
+				$wp_customize,
+				'webpress_settings[blog_container_layout]',
+				array(
+					'label' => __( 'Container Layout', 'webpress' ),
+					'description' => $container_layout_description,
+					'section' => 'webpress_blog_section',
+					'choices' => $container_layouts,
+					'settings' => 'webpress_settings[blog_container_layout]',
+					'priority' => 1,
+				)
+			)
+		);
+
+		$wp_customize->add_setting(
+			'webpress_settings[blog_layout_setting]',
+			array(
+				'default' => $defaults['blog_layout_setting'],
+				'type' => 'option',
+				'sanitize_callback' => 'webpress_sanitize_choices',
+			)
+		);
+
+		$wp_customize->add_control(
+			new WebPress_Customize_Radio_Image_Control(
+				$wp_customize,
+				'webpress_settings[blog_layout_setting]',
+				array(
+					'label' => __( 'Sidebar Layout', 'webpress' ),
+					'section' => 'webpress_blog_section',
+					'choices' => $sidebar_layouts,
+					'settings' => 'webpress_settings[blog_layout_setting]',
+					'priority' => 2,
+				)
+			)
+		);
+
+		$wp_customize->add_setting(
+			'webpress_settings[blog_post_layout]',
+			array(
+				'default' => $defaults['blog_post_layout'],
+				'type' => 'option',
+				'sanitize_callback' => 'webpress_sanitize_choices',
+			)
+		);
+
+		$wp_customize->add_control(
+			new WebPress_Customize_Radio_Image_Control(
+				$wp_customize,
+				'webpress_settings[blog_post_layout]',
+				array(
+					'label' => __( 'Post Layout', 'webpress' ),
+					'description' => __( 'Classic stacks full width posts, List puts the featured image beside the text, and Grid arranges posts in columns.', 'webpress' ),
+					'section' => 'webpress_blog_section',
+					'choices' => array(
+						'classic' => __( 'Classic', 'webpress' ),
+						'list' => __( 'List', 'webpress' ),
+						'grid' => __( 'Grid', 'webpress' ),
+					),
+					'settings' => 'webpress_settings[blog_post_layout]',
+					'priority' => 3,
+				)
+			)
+		);
+
+		$wp_customize->add_setting(
+			'webpress_settings[blog_grid_columns]',
+			array(
+				'default' => $defaults['blog_grid_columns'],
+				'type' => 'option',
+				'sanitize_callback' => 'webpress_sanitize_choices',
+			)
+		);
+
+		$wp_customize->add_control(
+			'webpress_settings[blog_grid_columns]',
+			array(
+				'type' => 'select',
+				'label' => __( 'Grid Columns', 'webpress' ),
+				'description' => __( 'Tablets show up to two columns and phones show one.', 'webpress' ),
+				'section' => 'webpress_blog_section',
+				'choices' => array(
+					'2' => '2',
+					'3' => '3',
+					'4' => '4',
+				),
+				'settings' => 'webpress_settings[blog_grid_columns]',
+				'priority' => 4,
+				'active_callback' => 'webpress_is_blog_grid_layout_callback',
 			)
 		);
 

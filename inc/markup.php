@@ -29,6 +29,17 @@ if ( ! function_exists( 'webpress_body_classes' ) ) {
 		$classes[] = ( $sidebar_layout ) ? $sidebar_layout : 'right-sidebar';
 		$classes[] = ( $navigation_location ) ? $navigation_location : 'nav-below-header';
 		$classes[] = ( $content_layout ) ? $content_layout : 'separate-containers';
+		$classes[] = webpress_get_container_layout() . '-container';
+
+		$blog_post_layout = webpress_get_blog_post_layout();
+
+		if ( 'classic' !== $blog_post_layout ) {
+			$classes[] = 'archive-layout-' . $blog_post_layout;
+		}
+
+		if ( 'grid' === $blog_post_layout ) {
+			$classes[] = 'archive-grid-columns-' . absint( webpress_get_option( 'blog_grid_columns' ) );
+		}
 
 		if ( 'enable' === webpress_get_option( 'nav_search' ) ) {
 			$classes[] = 'nav-search-enabled';

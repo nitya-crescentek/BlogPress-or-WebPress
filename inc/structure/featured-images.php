@@ -12,10 +12,38 @@ if ( ! defined( 'ABSPATH' ) ) {
 if ( ! function_exists( 'webpress_post_image' ) ) {
 	/**
 	 * Prints the Post Image to post excerpts
+	 *
+	 * The templates call this both above and below the entry header, and the
+	 * image only prints at the location that matches the blog post layout.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param string $location Where the template is calling from: above-title or below-title.
 	 */
-	function webpress_post_image() {
+	function webpress_post_image( $location = 'below-title' ) {
 		// If there's no featured image, return.
 		if ( ! has_post_thumbnail() ) {
+			return;
+		}
+
+		$blog_post_layout = webpress_get_blog_post_layout();
+
+		/**
+		 * Filters where the featured image sits in blog and archive listings.
+		 *
+		 * @since 1.0.0
+		 *
+		 * @param string $image_location   above-title or below-title.
+		 * @param string $blog_post_layout The post layout: classic, list or grid.
+		 * @return string Where to print the featured image.
+		 */
+		$image_location = apply_filters(
+			'webpress_post_image_location',
+			'classic' === $blog_post_layout ? 'below-title' : 'above-title',
+			$blog_post_layout
+		);
+
+		if ( $location !== $image_location ) {
 			return;
 		}
 
@@ -29,6 +57,24 @@ if ( ! function_exists( 'webpress_post_image' ) ) {
 				);
 			}
 
+			/**
+			 * Filters the image size used for featured images in listings.
+			 *
+			 * The list and grid layouts show smaller images, so they use a
+			 * smaller size by default.
+			 *
+			 * @since 1.0.0
+			 *
+			 * @param string $size             A registered image size name.
+			 * @param string $blog_post_layout The post layout: classic, list or grid.
+			 * @return string The image size to use.
+			 */
+			$image_size = apply_filters(
+				'webpress_post_image_size',
+				'classic' === $blog_post_layout ? 'full' : 'medium_large',
+				$blog_post_layout
+			);
+
 			echo sprintf(
 				'<div class="post-image">
 					%3$s
@@ -39,7 +85,7 @@ if ( ! function_exists( 'webpress_post_image' ) ) {
 				esc_url( get_permalink() ),
 				get_the_post_thumbnail(
 					get_the_ID(),
-					'full',
+					$image_size,
 					$attrs
 				),
 				''

@@ -1,0 +1,120 @@
+/*--------------------------------------------------------------
+# Archive Layouts
+Loaded only when blog and archive listings use the list or grid layout.
+--------------------------------------------------------------*/
+
+/* Featured images share one shape so the posts line up. */
+.archive-layout-list .site-main > article .post-image,
+.archive-layout-grid .site-main > article .post-image {
+	line-height: 0;
+}
+
+.archive-layout-list .site-main > article .post-image a,
+.archive-layout-grid .site-main > article .post-image a {
+	display: block;
+}
+
+.archive-layout-list .site-main > article .post-image img,
+.archive-layout-grid .site-main > article .post-image img {
+	width: 100%;
+	aspect-ratio: 16 / 9;
+	object-fit: cover;
+}
+
+/*--------------------------------------------------------------
+## List
+--------------------------------------------------------------*/
+.archive-layout-list .site-main > article > .inside-article {
+	display: flex;
+	align-items: flex-start;
+	gap: 2em;
+}
+
+.archive-layout-list .site-main > article > .inside-article > .post-image {
+	flex: 0 0 38%;
+	margin: 0;
+}
+
+.archive-layout-list .entry-body {
+	flex: 1 1 0;
+	min-width: 0;
+}
+
+/*--------------------------------------------------------------
+## Grid
+--------------------------------------------------------------*/
+.archive-layout-grid .site-main {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 20px;
+}
+
+.archive-grid-columns-3 .site-main {
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.archive-grid-columns-4 .site-main {
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.one-container.archive-layout-grid .site-main {
+	column-gap: 40px;
+}
+
+/* The archive title, pagination and anything else that isn't a post spans the full row. */
+.archive-layout-grid .site-main > * {
+	grid-column: 1 / -1;
+	margin-bottom: 0;
+}
+
+.archive-layout-grid .site-main > article {
+	grid-column: auto;
+	display: flex;
+	flex-direction: column;
+}
+
+.archive-layout-grid .site-main > article > .inside-article {
+	display: flex;
+	flex-direction: column;
+	flex-grow: 1;
+}
+
+.archive-layout-grid .site-main > article > .inside-article > .post-image {
+	margin: 0 0 1.5em;
+}
+
+/* Stretch the text so the footer meta lines up along the bottom of each row. */
+.archive-layout-grid .entry-body {
+	display: flex;
+	flex-direction: column;
+	flex-grow: 1;
+}
+
+.archive-layout-grid .entry-body > .entry-summary,
+.archive-layout-grid .entry-body > .entry-content {
+	flex-grow: 1;
+}
+
+/*--------------------------------------------------------------
+# Responsive
+--------------------------------------------------------------*/
+@media (max-width: 1024px) {
+	.archive-grid-columns-3 .site-main,
+	.archive-grid-columns-4 .site-main {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+@media (max-width: 768px) {
+	.archive-layout-grid .site-main {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.archive-layout-list .site-main > article > .inside-article {
+		display: block;
+	}
+
+	.archive-layout-list .site-main > article > .inside-article > .post-image {
+		margin-bottom: 1.5em;
+	}
+}

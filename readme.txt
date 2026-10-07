@@ -55,8 +55,10 @@ icon-only controls.
   back-to-top control, built on a seven-colour global palette you can redefine
 * Dynamic typography — font family, size, weight, transform, line height and letter spacing per element, with the
   option to add Google Fonts if you want them
-* Six content layouts — right sidebar, left sidebar, no sidebar, both sidebars, both left, both right — set
-  globally and overridable per post or page
+* Separate layouts for pages, single posts and the blog and archives, each overridable per post or page:
+  * Three container layouts — normal, narrow (a comfortable reading width) and full width
+  * Six sidebar layouts — right sidebar, left sidebar, no sidebar, both sidebars, both left, both right
+* Three blog post layouts — classic, list (featured image beside the text) and a grid of two, three or four columns
 * Six positions for the primary menu — above the header, below the header, floated left or right of the site
   title, or inside the left or right sidebar
 * Dropdown menus that open on hover or on click
@@ -79,7 +81,7 @@ front end and the block editor.
 
 == Customizing WebPress ==
 
-WebPress is built to be extended from a child theme or a small plugin. It provides 35 action hooks and 23 filters,
+WebPress is built to be extended from a child theme or a small plugin. It provides 35 action hooks and 27 filters,
 so in most cases you can add or change output without editing or copying a template file.
 
 A full reference with arguments and examples is coming. The most useful hooks are listed here.
@@ -132,6 +134,10 @@ target one template without writing conditionals.
 * webpress_show_excerpt — excerpts instead of full content in listings
 * webpress_default_loop — return false to suppress the theme's loop entirely
 * webpress_sidebar_layout — the sidebar layout for the current view
+* webpress_container_layout — the container layout for the current view: normal, narrow or full-width
+* webpress_blog_post_layout — the post layout in blog and archive listings: classic, list or grid
+* webpress_post_image_location — whether listing images print above-title or below-title
+* webpress_post_image_size — the image size used for featured images in listings
 * webpress_footer_widgets — how many footer widget columns to show
 * webpress_show_post_navigation — the older/newer navigation below listings
 * webpress_svg_icon — the markup of any built-in SVG icon
@@ -219,11 +225,12 @@ webpress_schema_type filter.
 Ten. You can add widgets to them under "Appearance > Widgets".
 
 = Can I change the layout for a single post or page? =
-Yes. Each post and page has a Layout box in the editor sidebar where you can override the global sidebar layout and
-the number of footer widget columns.
+Yes. Set the defaults for pages, single posts and the blog under "Appearance > Customize > Layout". Each post and
+page also has a Layout box in the editor sidebar where you can override the container layout, the sidebar layout
+and the number of footer widget columns.
 
 = How do I customize the theme without losing changes on update? =
-Use a child theme. WebPress provides 35 action hooks and 23 filters, and wraps its template functions in
+Use a child theme. WebPress provides 35 action hooks and 27 filters, and wraps its template functions in
 function_exists(), so most changes can be made without copying template files. See "Customizing WebPress" above.
 
 = Is WebPress translation ready? =

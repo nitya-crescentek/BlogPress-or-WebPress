@@ -14,6 +14,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<?php
 		webpress_featured_page_header_inside_single();
 
+		webpress_post_image( 'above-title' );
+
+		$webpress_has_entry_body = webpress_has_entry_body_wrapper();
+
+		if ( $webpress_has_entry_body ) {
+			echo '<div class="entry-body">';
+		}
+
 		/** This action is documented in content.php */
 		do_action( 'webpress_before_content', 'link' );
 
@@ -91,6 +99,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 		/** This action is documented in content.php */
 		do_action( 'webpress_after_content', 'link' );
 
+		if ( $webpress_has_entry_body ) {
+			echo '</div>';
+		}
 		?>
 	</div>
 </article>

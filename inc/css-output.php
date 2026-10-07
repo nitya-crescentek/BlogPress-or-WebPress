@@ -797,27 +797,41 @@ function webpress_no_cache_dynamic_css() {
 	$css->set_selector( '.is-left-sidebar' );
 	$css->add_property( 'width', absint( $left_sidebar_width ) . '%' );
 
-	$content_width = 100;
 	$sidebar_layout = webpress_get_layout();
-
-	switch ( $sidebar_layout ) {
-		case 'right-sidebar':
-			$content_width = $content_width - absint( $right_sidebar_width );
-			break;
-
-		case 'left-sidebar':
-			$content_width = $content_width - absint( $left_sidebar_width );
-			break;
-
-		case 'both-sidebars':
-		case 'both-right':
-		case 'both-left':
-			$content_width = $content_width - absint( $right_sidebar_width ) - absint( $left_sidebar_width );
-			break;
-	}
+	$content_width = webpress_get_content_area_width( $sidebar_layout );
 
 	$css->set_selector( '.site-content .content-area' );
 	$css->add_property( 'width', absint( $content_width ) . '%' );
+
+	$spacing_settings = wp_parse_args(
+		get_option( 'webpress_spacing_settings', array() ),
+		webpress_spacing_get_defaults()
+	);
+
+	if ( 'grid' === webpress_get_blog_post_layout() ) {
+		$css->set_selector( '.archive-layout-grid .site-main' );
+		$css->add_property( 'gap', absint( $spacing_settings['separator'] ), '20', 'px' );
+	}
+
+	$container_layout = webpress_get_container_layout();
+
+	// The page header image sits outside the page container, so it gets the same width.
+	if ( 'narrow' === $container_layout ) {
+		$css->set_selector( '.narrow-container .site.grid-container, .narrow-container .page-header-image.grid-container' );
+		$css->add_property( 'max-width', webpress_get_narrow_container_width( $sidebar_layout ), false, 'px' );
+	}
+
+	if ( 'full-width' === $container_layout ) {
+		$css->set_selector( '.full-width-container .site.grid-container, .full-width-container .page-header-image.grid-container' );
+		$css->add_property( 'max-width', '100%' );
+
+		// Keep the content off the edges of the screen, unless a page builder handles the spacing.
+		$css->start_media_query( '(min-width: 769px)' );
+		$css->set_selector( '.full-width-container:not(.full-width-content) .site.grid-container, .full-width-container:not(.full-width-content) .page-header-image.grid-container' );
+		$css->add_property( 'padding-left', absint( $spacing_settings['separator'] ), false, 'px' );
+		$css->add_property( 'padding-right', absint( $spacing_settings['separator'] ), false, 'px' );
+		$css->stop_media_query();
+	}
 
 	$css->start_media_query( webpress_get_media_query( 'mobile-menu' ) );
 
