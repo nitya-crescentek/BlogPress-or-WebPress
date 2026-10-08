@@ -7,7 +7,7 @@ Tags: blog, one-column, two-columns, three-columns, left-sidebar, right-sidebar,
 Requires at least: 6.6
 Requires PHP: 7.4
 Tested up to: 7.1
-Stable tag: 1.0.0
+Stable tag: 1.0.1
 
 Fast, lightweight WordPress blog theme with 71 colour controls, six layouts, schema.org markup and 35 developer hooks.
 
@@ -280,6 +280,9 @@ The files in assets/dist/ are compiled. Their uncompiled source is available at:
 TODO-ADD-PUBLIC-REPOSITORY-URL-BEFORE-SUBMITTING
 
 == Changelog ==
+
+= 1.0.1=
+* New feature: layout coustomization for templates. 
 
 = 1.0.0 =
 * Initial release.

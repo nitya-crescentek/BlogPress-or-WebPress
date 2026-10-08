@@ -12,7 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Set our theme version.
-define( 'WEBPRESS_VERSION', '1.0.0' );
+define( 'WEBPRESS_VERSION', '1.0.1' );
 
 if ( ! function_exists( 'webpress_setup' ) ) {
 	add_action( 'after_setup_theme', 'webpress_setup' );
